@@ -44,4 +44,16 @@ class TokenHelper
             return false;
         }
     }
+
+    public static function checkExpiredToken($token)
+    {
+        $decoded = self::decodeJWTBearerToken($token);
+        logger("Decoded token:", ['decoded' => $decoded]);
+        if (!$decoded) {
+            return true; // Token tidak valid, dianggap expired
+        }
+
+        $current_time = time();
+        return $current_time > $decoded->expired_at;
+    }
 }

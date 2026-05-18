@@ -32,6 +32,7 @@ Route::group(['prefix' => 'mobile'], function () {
     Route::group(['prefix' => 'auth'], function () {
         Route::post('login', [AuthController::class, 'login']);
         Route::post('reset-password', [AuthController::class, 'resetPassword']);
+        Route::post('check-login-expiring', [AuthController::class, 'checkLoginExpiring']);
     });
     Route::middleware(['auth.mobile.employee'])->group(function () {
         Route::group(['prefix' => 'employees'], function () {
