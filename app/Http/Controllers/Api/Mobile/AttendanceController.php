@@ -219,11 +219,11 @@ class AttendanceController extends Controller
     public function getTodayPresence(Request $request)
     {
         $employeeTokenObj = TokenHelper::decodeJWTBearerToken($request->bearerToken());
-
+        $data = Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first() ?? [];
         return response()->json([
             'code' => 200,
             'msg' => 'OK',
-            'data' => Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first()
+            'data' => $data
         ], 200);
     }
 
@@ -240,17 +240,19 @@ class AttendanceController extends Controller
 
     public function clockIn(ApiMobileAttendanceClockInRequest $request)
     {
+        // logger('Received clock-in request', ['request_data' => $request->all()]);
         $employeeTokenObj = TokenHelper::decodeJWTBearerToken($request->bearerToken());
         $employee = Employee::find($employeeTokenObj->id);
         $company = Company::first();
 
         // Validasi kecuali hari Minggu
         if (date('N') == 7) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Anda tidak dapat melakukan clock-in pada hari Minggu",
-            ], 422);
+            // logger('Absen clock-in ditolak karena hari Minggu');
+            // return response()->json([
+            //     'code'  => 422,
+            //     'msg'   => "Validasi Gagal",
+            //     'error' => "Anda tidak dapat melakukan clock-in pada hari Minggu",
+            // ], 422);
         }
 
         // Cek hari libur
@@ -283,7 +285,7 @@ class AttendanceController extends Controller
 
             foreach ($locations as $location) {
                 $distanceLatLng = GeolocationHelper::haversineGreatCircleDistance($request->latitude, $request->longitude, $location->latitude, $location->longitude);
-
+                logger('Distance to location ', ['distance_in_meters' => $distanceLatLng, 'allowed_radius' => $location->radius]);
                 if ($distanceLatLng <= $location->radius) {
                     $can = true;
                     break;
@@ -309,7 +311,7 @@ class AttendanceController extends Controller
 
         $distanceMinuteAttendance = (strtotime(date('H:i:s')) - strtotime($company->start_clock_in)) / 60;
 
-        Attendance::create([
+        $data = Attendance::create([
             'employee_id' => $employeeTokenObj->id,
             'date' => date('Y-m-d'),
             'clock_in' => date('H:i:s'),
@@ -324,6 +326,7 @@ class AttendanceController extends Controller
 
         return response()->json([
             'code' => 200,
+            'data' => $data,
             'msg' => 'Berhasil, Clock-In Berhasil'
         ], 200);
     }

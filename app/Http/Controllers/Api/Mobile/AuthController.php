@@ -18,11 +18,18 @@ class AuthController extends Controller
     {
         $employee = Employee::where('employee_id', $request->employee_id)->first();
 
+        if (!$employee) {
+            logger('Login failed for employee_id: ' . $request->employee_id . ' - Employee ID not found');
+            return $this->validationError("Employee ID not found or password incorrect");
+        }
+
         if (!Hash::check($request->password, $employee->password)) {
+            logger('Login failed for employee_id: ' . $request->employee_id . ' - Incorrect password');
             return $this->validationError("Password incorrect");
         }
 
         if ($employee->work_status !== 'Active') {
+            logger('Login failed for employee_id: ' . $request->employee_id . ' - Account not active');
             return $this->validationError("You can't login, your account is not active");
         }
 
@@ -32,6 +39,7 @@ class AuthController extends Controller
                 'token_fcm' => $request->token_fcm
             ]);
         } elseif ($employee->device_id !== $request->device_id) {
+            logger('Login failed for employee_id: ' . $request->employee_id . ' - Already logged in on another device');
             return $this->validationError("Already logged in on another device, try contacting the admin");
         } else {
             $employee->update([
@@ -42,9 +50,49 @@ class AuthController extends Controller
 
         return response()->json([
             'code' => 200,
-            'msg'  => "You have successfully logged in",
+            'msg' => "You have successfully logged in",
             'data' => [
+                'employee' => $employee,
                 'token' => $token
+            ]
+        ], 200);
+    }
+
+    public function checkLoginExpiring(Request $request)
+    {
+        $employeeJWT = TokenHelper::decodeJWTBearerToken($request->bearerToken());
+        $employee = Employee::find($employeeJWT->id);
+
+        if (!$employee) {
+            return response()->json([
+                'code' => 404,
+                'msg' => "Employee not found",
+            ], 404);
+        }
+
+        if ($employee->device_id === null) {
+            return response()->json([
+                'code' => 404,
+                'msg' => "Employee not logged in",
+            ], 404);
+        } elseif ($employee->device_id !== $request->device_id) {
+            return response()->json([
+                'code' => 403,
+                'msg' => "Employee logged in on another device",
+            ], 403);
+        } elseif (TokenHelper::checkExpiredToken($request->bearerToken())) {
+            return response()->json([
+                'code' => 401,
+                'msg' => "Token expired",
+            ], 401);
+        }
+
+        return response()->json([
+            'code' => 200,
+            'msg' => "Token is valid",
+            'data' => [
+                'employee' => $employee,
+                'token_expiring_soon' => false
             ]
         ], 200);
     }
@@ -52,8 +100,8 @@ class AuthController extends Controller
     private function validationError($errorMessage)
     {
         return response()->json([
-            'code'  => 422,
-            'msg'   => "Error Validations",
+            'code' => 422,
+            'msg' => "Error Validations",
             'error' => $errorMessage,
         ], 422);
     }
@@ -69,7 +117,7 @@ class AuthController extends Controller
 
         return response()->json([
             'code' => 200,
-            'msg'  => "Current Auth Employee",
+            'msg' => "Current Auth Employee",
             'data' => $employee
         ], 200);
     }
@@ -110,7 +158,7 @@ class AuthController extends Controller
 
         return response()->json([
             'code' => 200,
-            'msg'  => 'Password reset link has been sent',
+            'msg' => 'Password reset link has been sent',
         ], 200);
     }
 }

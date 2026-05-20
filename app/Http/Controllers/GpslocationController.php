@@ -34,6 +34,16 @@ class GpslocationController extends Controller
         return view('gpslocations.index');
     }
 
+    public function viewList() {
+        $gpslocations = Gpslocation::all();
+
+        return response()->json([
+            'code' => 200,
+            'data' => $gpslocations,
+            'msg' => 'Berhasil, Data Lokasi GPS Berhasil Diambil'
+        ], 200);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

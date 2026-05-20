@@ -26,6 +26,15 @@ class CompanyController extends Controller
         return view('companies.edit', compact('company'));
     }
 
+    public function view(){
+        $company = Company::findOrFail(1);
+        return response()->json([
+            'code' => 200,
+            'data' => $company,
+            'msg' => 'Berhasil, Data Perusahaan Berhasil Diambil'
+        ], 200);
+    }
+
     public function update(UpdateCompanyRequest $request, Company $company)
     {
         $attr = $request->validated();

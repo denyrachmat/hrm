@@ -8,7 +8,8 @@ use App\Http\Controllers\Api\Mobile\BannerController;
 use App\Http\Controllers\Api\Mobile\EmployeeController;
 use App\Http\Controllers\Api\Mobile\AttendanceController;
 use App\Http\Controllers\Api\Mobile\AuthEmployeeController;
-use App\Http\Controllers\Api\Website\CompanyController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\GpslocationController;
 use App\Http\Controllers\Api\Website\ContactController;
 
 
@@ -34,6 +35,7 @@ Route::group(['prefix' => 'mobile'], function () {
         Route::post('reset-password', [AuthController::class, 'resetPassword']);
         Route::post('check-login-expiring', [AuthController::class, 'checkLoginExpiring']);
     });
+
     Route::middleware(['auth.mobile.employee'])->group(function () {
         Route::group(['prefix' => 'employees'], function () {
             Route::get('/', [EmployeeController::class, 'index']);
@@ -67,6 +69,14 @@ Route::group(['prefix' => 'mobile'], function () {
         });
         Route::group(['prefix' => 'auth'], function () {
             Route::get('employee', [AuthController::class, 'getCurrentAuthEmployee']);
+        });
+
+        Route::group(['prefix' => 'company'], function () {
+            Route::get('/', [CompanyController::class, 'view']);
+        });
+
+        Route::group(['prefix'=> 'gps-location'], function () {
+            Route::get('', [GpslocationController::class,'viewList']);
         });
     });
 });
