@@ -21,7 +21,7 @@ class Attendance extends Model
      *
      * @var string[]
      */
-    protected $fillable = ['employee_id', 'date', 'clock_in','clock_istirahat','clock_out', 'latitude', 'longitude', 'file_attachment', 'is_present', 'description', 'selisih', 'activity', 'image_clock_out','image_istirahat','point'];
+    protected $fillable = ['employee_id', 'date', 'clock_in','clock_istirahat','clock_istirahat_out','clock_out', 'latitude', 'longitude', 'file_attachment', 'is_present', 'description', 'selisih', 'activity', 'image_clock_out','image_istirahat','point'];
 
     /**
      * The attributes that should be cast.

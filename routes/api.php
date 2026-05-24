@@ -59,6 +59,7 @@ Route::group(['prefix' => 'mobile'], function () {
             Route::post('clock-in', [AttendanceController::class, 'clockIn']);
             Route::post('clock-out', [AttendanceController::class, 'clockOut']);
             Route::post('clock-istirahat', [AttendanceController::class, 'clockIstirahat']);
+            Route::post('clock-istirahat-out', [AttendanceController::class, 'clockIstirahatOut']);
             Route::post('izin-or-sakit', [AttendanceController::class, 'izinOrSakit']);
             Route::post('pengajuan-cuti', [AttendanceController::class, 'pengajuanCuti']);
             Route::post('pengajuan-revisi-absen', [AttendanceController::class, 'pengajuanRevisiAbsen']);

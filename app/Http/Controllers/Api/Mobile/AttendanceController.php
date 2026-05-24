@@ -246,14 +246,13 @@ class AttendanceController extends Controller
         $company = Company::first();
 
         // Validasi kecuali hari Minggu
-        if (date('N') == 7) {
-            // logger('Absen clock-in ditolak karena hari Minggu');
-            // return response()->json([
-            //     'code'  => 422,
-            //     'msg'   => "Validasi Gagal",
-            //     'error' => "Anda tidak dapat melakukan clock-in pada hari Minggu",
-            // ], 422);
-        }
+        // if (date('N') == 7) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Anda tidak dapat melakukan clock-in pada hari Minggu",
+        //     ], 422);
+        // }
 
         // Cek hari libur
         $today = date('Y-m-d');
@@ -334,23 +333,23 @@ class AttendanceController extends Controller
     public function clockIstirahat(ApiMobileAttendanceClockIstirahatRequest $request)
     {
         $employeeTokenObj = TokenHelper::decodeJWTBearerToken($request->bearerToken());
-        if (date('N') == 7) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Anda tidak dapat absen masuk istirahat pada hari Minggu",
-            ], 422);
-        }
+        // if (date('N') == 7) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Anda tidak dapat absen masuk istirahat pada hari Minggu",
+        //     ], 422);
+        // }
 
         // Cek waktu untuk istirahat
-        $currentTime = date('H:i:s');
-        if (strtotime($currentTime) < strtotime('12:50:00')) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Anda hanya dapat absen masuk setelah 12:50",
-            ], 422);
-        }
+        // $currentTime = date('H:i:s');
+        // if (strtotime($currentTime) < strtotime('12:50:00')) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Anda hanya dapat absen masuk setelah 12:50",
+        //     ], 422);
+        // }
 
         // Cek hari libur
         $today = now()->toDateString();
@@ -399,19 +398,49 @@ class AttendanceController extends Controller
         ], 200);
     }
 
+    public function clockIstirahatOut(Request $request){
+        $employeeTokenObj = TokenHelper::decodeJWTBearerToken($request->bearerToken());
+        $attendance = Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first();
+
+        if (!$attendance || !$attendance->clock_istirahat) {
+            return response()->json([
+                'code'  => 422,
+                'msg'   => "Validasi Gagal",
+                'error' => 'Anda belum melakukan clock-in untuk istirahat',
+            ], 422);
+        }
+
+        if ($attendance->clock_istirahat_out) {
+            return response()->json([
+                'code'  => 422,
+                'msg'   => "Validasi Gagal",
+                'error' => 'Anda sudah melakukan clock-out untuk istirahat',
+            ], 422);
+        }
+
+        $attendance->update([
+            'clock_istirahat_out' => date('H:i:s'),
+        ]);
+
+        return response()->json([
+            'code' => 200,
+            'msg' => 'Berhasil, Absen keluar istirahat',
+        ], 200);
+    }
+
     public function clockOut(ApiMobileAttendanceClockOutRequest $request)
     {
         $employeeTokenObj = TokenHelper::decodeJWTBearerToken($request->bearerToken());
         $company = Company::first();
 
         // Validasi kecuali hari Minggu
-        if (date('N') == 7) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Anda tidak dapat clock-out pada hari Minggu",
-            ], 422);
-        }
+        // if (date('N') == 7) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Anda tidak dapat clock-out pada hari Minggu",
+        //     ], 422);
+        // }
 
         // Cek hari libur
         $today = now()->toDateString();
@@ -494,13 +523,13 @@ class AttendanceController extends Controller
          * Validasi kecuali hari Sabtu dan Minggu untuk kehadiran
          *
          */
-        if (date('N') == 7) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Kesalahan Validasi",
-                'error' => "Anda tidak bisa melakukan permintaan Izin/Sakit pada hari Minggu",
-            ], 422);
-        }
+        // if (date('N') == 7) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Kesalahan Validasi",
+        //         'error' => "Anda tidak bisa melakukan permintaan Izin/Sakit pada hari Minggu",
+        //     ], 422);
+        // }
 
         // Jika sudah melakukan clock-in maka tolak
         if (Attendance::where('date', $request->date)->where('employee_id', $employeeTokenObj->id)->first()) {
