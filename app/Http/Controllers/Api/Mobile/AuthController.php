@@ -18,6 +18,7 @@ class AuthController extends Controller
     {
         $employee = Employee::where('employee_id', $request->employee_id)->first();
 
+        logger('Login attempt for employee_id: ' . $request->employee_id);
         if (!$employee) {
             logger('Login failed for employee_id: ' . $request->employee_id . ' - Employee ID not found');
             return $this->validationError("Employee ID not found or password incorrect");
@@ -33,19 +34,11 @@ class AuthController extends Controller
             return $this->validationError("You can't login, your account is not active");
         }
 
-        if ($employee->device_id === null) {
-            $employee->update([
-                'device_id' => $request->device_id,
-                'token_fcm' => $request->token_fcm
-            ]);
-        } elseif ($employee->device_id !== $request->device_id) {
-            logger('Login failed for employee_id: ' . $request->employee_id . ' - Already logged in on another device');
-            return $this->validationError("Already logged in on another device, try contacting the admin");
-        } else {
-            $employee->update([
-                'token_fcm' => $request->token_fcm
-            ]);
-        }
+        // Always update device_id and FCM token for development/testing convenience
+        $employee->update([
+            'device_id' => $request->device_id,
+            'token_fcm' => $request->token_fcm
+        ]);
         $token = TokenHelper::generateJWTToken($employee->id, $employee->employee_id, $employee->email);
 
         return response()->json([

@@ -34,6 +34,8 @@ class ApiMobileLoginRequest extends FormRequest
     {
         $errorMessage = $validator->errors()->first('employee_id');
 
+        logger('Validation failed for employee_id: ' . $this->employee_id . ' - ' . $errorMessage);
+
         if ($errorMessage && strpos($errorMessage, 'exists') !== false) {
             $errorMessage = 'Employee ID is not registered';
         }

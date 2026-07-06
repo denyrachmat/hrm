@@ -258,47 +258,47 @@ class AttendanceController extends Controller
         $today = date('Y-m-d');
         $data = DB::table('offdays')->whereDate('date', $today)->first();
 
-        if ($data) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Hari libur: "  . $data->description,
-            ], 422);
-        }
+        // if ($data) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Hari libur: "  . $data->description,
+        //     ], 422);
+        // }
 
-        if (strtotime(date('H:i:s')) < strtotime($company->start_clock_in)) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => 'Anda hanya dapat clock-in mulai ' . $company->start_clock_in,
-            ], 422);
-        }
+        // if (strtotime(date('H:i:s')) < strtotime($company->start_clock_in)) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => 'Anda hanya dapat clock-in mulai ' . $company->start_clock_in,
+        //     ], 422);
+        // }
 
-        if ($employee->use_gps_location == 'Yes') {
-            $locations = DB::table('location_attendance_employee')
-                ->join('gpslocations', 'location_attendance_employee.location_id', '=', 'gpslocations.id')
-                ->where('location_attendance_employee.employee_id', $employee->id)
-                ->get();
+        // if ($employee->use_gps_location == 'Yes') {
+        //     $locations = DB::table('location_attendance_employee')
+        //         ->join('gpslocations', 'location_attendance_employee.location_id', '=', 'gpslocations.id')
+        //         ->where('location_attendance_employee.employee_id', $employee->id)
+        //         ->get();
 
-            $can = false;
+        //     $can = false;
 
-            foreach ($locations as $location) {
-                $distanceLatLng = GeolocationHelper::haversineGreatCircleDistance($request->latitude, $request->longitude, $location->latitude, $location->longitude);
-                logger('Distance to location ', ['distance_in_meters' => $distanceLatLng, 'allowed_radius' => $location->radius]);
-                if ($distanceLatLng <= $location->radius) {
-                    $can = true;
-                    break;
-                }
-            }
+        //     foreach ($locations as $location) {
+        //         $distanceLatLng = GeolocationHelper::haversineGreatCircleDistance($request->latitude, $request->longitude, $location->latitude, $location->longitude);
+        //         logger('Distance to location ', ['distance_in_meters' => $distanceLatLng, 'allowed_radius' => $location->radius]);
+        //         if ($distanceLatLng <= $location->radius) {
+        //             $can = true;
+        //             break;
+        //         }
+        //     }
 
-            if ($can == false) {
-                return response()->json([
-                    'code'  => 422,
-                    'msg'   => 'Validasi Gagal',
-                    'error' => 'Anda harus clock-in di area yang ditentukan',
-                ], 422);
-            }
-        }
+        //     if ($can == false) {
+        //         return response()->json([
+        //             'code'  => 422,
+        //             'msg'   => 'Validasi Gagal',
+        //             'error' => 'Anda harus clock-in di area yang ditentukan',
+        //         ], 422);
+        //     }
+        // }
 
         if (Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first()) {
             return response()->json([
@@ -355,13 +355,13 @@ class AttendanceController extends Controller
         $today = now()->toDateString();
         $data = DB::table('offdays')->whereDate('date', $today)->first();
 
-        if ($data) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Hari libur: "  . $data->description,
-            ], 422);
-        }
+        // if ($data) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Hari libur: "  . $data->description,
+        //     ], 422);
+        // }
 
         // Cek apakah sudah clock-in
         $attendance = Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first();
@@ -434,13 +434,13 @@ class AttendanceController extends Controller
         $company = Company::first();
 
         // Validasi kecuali hari Minggu
-        // if (date('N') == 7) {
-        //     return response()->json([
-        //         'code'  => 422,
-        //         'msg'   => "Validasi Gagal",
-        //         'error' => "Anda tidak dapat clock-out pada hari Minggu",
-        //     ], 422);
-        // }
+        if (date('N') == 7) {
+            return response()->json([
+                'code'  => 422,
+                'msg'   => "Validasi Gagal",
+                'error' => "Anda tidak dapat clock-out pada hari Minggu",
+            ], 422);
+        }
 
         // Cek hari libur
         $today = now()->toDateString();
@@ -523,13 +523,13 @@ class AttendanceController extends Controller
          * Validasi kecuali hari Sabtu dan Minggu untuk kehadiran
          *
          */
-        // if (date('N') == 7) {
-        //     return response()->json([
-        //         'code'  => 422,
-        //         'msg'   => "Kesalahan Validasi",
-        //         'error' => "Anda tidak bisa melakukan permintaan Izin/Sakit pada hari Minggu",
-        //     ], 422);
-        // }
+        if (date('N') == 7) {
+            return response()->json([
+                'code'  => 422,
+                'msg'   => "Kesalahan Validasi",
+                'error' => "Anda tidak bisa melakukan permintaan Izin/Sakit pada hari Minggu",
+            ], 422);
+        }
 
         // Jika sudah melakukan clock-in maka tolak
         if (Attendance::where('date', $request->date)->where('employee_id', $employeeTokenObj->id)->first()) {
