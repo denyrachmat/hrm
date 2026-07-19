@@ -69,22 +69,22 @@ class MonthlyController extends Controller
                     return $row->full_name;
                 })
                 ->addColumn('salary_monthly', function ($row) {
-                    return  $row->currency . ' ' . currency($row->salary_monthly);
+                    return $row->currency . ' ' . currency($row->salary_monthly);
                 })
                 ->addColumn('salary_daily', function ($row) {
-                    return  $row->currency . ' ' . currency($row->salary_daily);
+                    return $row->currency . ' ' . currency($row->salary_daily);
                 })
                 ->addColumn('total_earnings', function ($row) {
-                    return  $row->currency . ' ' . currency($row->total_earnings + $row->craft_incentives_payroll  + $row->meal_allowance_payroll);
+                    return $row->currency . ' ' . currency($row->total_earnings + $row->craft_incentives_payroll + $row->meal_allowance_payroll);
                 })
                 ->addColumn('total_deductions', function ($row) {
-                    return  $row->currency . ' ' . currency($row->total_deductions + $row->potongan_telat_absen);
+                    return $row->currency . ' ' . currency($row->total_deductions + $row->potongan_telat_absen);
                 })
                 ->addColumn('final_salary', function ($row) {
-                    return  $row->currency . ' ' . currency($row->final_salary);
+                    return $row->currency . ' ' . currency($row->final_salary);
                 })
                 ->addColumn('earning_and_deductions', function ($row) {
-                    return  MonthlyHasEarningAndDeduction::where('employee_id', $row->employee_id)->where('period', $row->period)->get();
+                    return MonthlyHasEarningAndDeduction::where('employee_id', $row->employee_id)->where('period', $row->period)->get();
                 })
                 ->addColumn('is_send', function ($row) {
                     if ($row->is_send == 'Yes') {
@@ -112,7 +112,7 @@ class MonthlyController extends Controller
             ->leftJoin('branch_offices', 'branch_offices.id', '=', 'employees.branch_office_id') // Added join for branch_offices
             ->select(
                 'monthlies.*',
-                 'employees.id',
+                'employees.id',
                 'employees.full_name',
                 'employees.email',
                 'employees.employee_id',
@@ -124,8 +124,8 @@ class MonthlyController extends Controller
             )
             ->where('monthlies.id', $id)
             ->first();
-             $employeeId = $monthlies->id;
- // Fetch earnings from monthly_has_earning_and_deductions where period and status = 'earning'
+        $employeeId = $monthlies->id;
+        // Fetch earnings from monthly_has_earning_and_deductions where period and status = 'earning'
         $earnings = DB::table('monthly_has_earning_and_deductions')
             ->where('period', $monthlies->period)
             ->where('employee_id', $employeeId)
@@ -138,7 +138,7 @@ class MonthlyController extends Controller
             ->where('employee_id', $employeeId)
             ->where('status', 'deduction')
             ->get();
-            
+
         $pdf = PDF::loadview('monthlies.pdf', [
             'monthlies' => $monthlies,
             'earnings' => $earnings,
@@ -169,20 +169,20 @@ class MonthlyController extends Controller
             )
             ->where('monthlies.id', $id)
             ->first();
-            $employeeId = $monthlies->id;
+        $employeeId = $monthlies->id;
 
         // Fetch earnings from monthly_has_earning_and_deductions where period and status = 'earning'
         $earnings = DB::table('monthly_has_earning_and_deductions')
             ->where('period', $monthlies->period)
             ->where('employee_id', $employeeId)
-                       ->where('status', 'earning')
+            ->where('status', 'earning')
             ->get();
 
         // Fetch deductions from monthly_has_earning_and_deductions where period and status = 'deduction'
         $deductions = DB::table('monthly_has_earning_and_deductions')
             ->where('period', $monthlies->period)
             ->where('employee_id', $employeeId)
-                       ->where('status', 'deduction')
+            ->where('status', 'deduction')
             ->get();
         return view('monthlies.show', [
             'monthlies' => $monthlies,
@@ -236,6 +236,14 @@ class MonthlyController extends Controller
             return $q->where('department_id', $request->department_id);
         })->get();
 
+        $total_jat_earnings = DB::connection('jat_mysql')->table('ALL_SPK_VIEW')
+            ->selectRaw('CSPK_PIC_NAME, (CSPK_UANG_JALAN + CSPK_UANG_MAKAN + CSPK_UANG_SOLAR + CSPK_UANG_MANDAH + CSPK_UANG_PENGINAPAN + CSPK_UANG_PENGAWALAN + CSPK_UANG_LAIN2) as total_earning')
+            ->whereIn('CSPK_PIC_NAME', $employees->pluck('id'))
+            ->whereBetween(DB::raw("DATE_FORMAT(CSPK_SUBMIT_DT, '%Y-%m')"), [$request->month_generate])
+            ->whereNotNull('CSPK_SUBMIT_DT')
+            ->get()
+            ->toArray();
+
         foreach ($employees as $employee) {
             // Earnings
             $earnings = DB::table('employee_has_earnings')
@@ -271,11 +279,12 @@ class MonthlyController extends Controller
 
             $salary_monthly = $employee->payroll_type == 'monthly' || $employee->payroll_type == 'monthly_and_daily' ? $employee->salary : 0;
             $salary_per_day = 0;
-if ($employee->payroll_type == 'daily' || $employee->payroll_type == 'monthly_and_daily') {
-    $salary_per_day = $employee->daily_salary ?? 0; // fallback ke 0 kalau null
-}
 
-          
+            if ($employee->payroll_type == 'daily' || $employee->payroll_type == 'monthly_and_daily') {
+                $salary_per_day = $employee->daily_salary ?? 0; // fallback ke 0 kalau null
+            }
+
+
             $craft_incentives = $employee->craft_incentives ?? 0;
 
             // Total Earnings
@@ -312,20 +321,27 @@ if ($employee->payroll_type == 'daily' || $employee->payroll_type == 'monthly_an
 
             // Hitung potongan absen karyawan yang clock_in lebih dari jam 08:01 dan kurang dari jam 10:00
             $lateAbsencesCount = $this->calculateLateAbsenceDeduction($employee->id, $request->month_generate);
-            $departmentswithlatepenalty = ['1','2','3','4'];
-            if (in_array($employee->department_id,$departmentswithlatepenalty)){
+            $departmentswithlatepenalty = ['1', '2', '3', '4'];
+            if (in_array($employee->department_id, $departmentswithlatepenalty)) {
                 $potongan_telat_absen = $lateAbsencesCount * 10000;
             } else {
                 $potongan_telat_absen = 0;
             }
-            
+
 
             // Hitung benefit uang makan
             $totalAllowanceFee = $employee->meal_allowance * $daysPresent;
 
+            // Hitung Penghasilan dari JAT Power
+            $jatEarnings = array_values(array_filter($total_jat_earnings, function ($item) use ($employee) {
+                return $item->CSPK_PIC_NAME == $employee->id;
+            }));
+
+            $jatEarnings = count($jatEarnings) > 0 ? $jatEarnings[0]->total_earning : 0;
+
             // Hitung final salary
             $final_salary = 0;
-            $final_salary = $salary_monthly + $salary_daily + $total_earnings + $totalAllowanceFee + $craft_incentives_payroll - $total_deductions - $potongan_telat_absen;
+            $final_salary = $salary_monthly + $salary_daily + $jatEarnings + $total_earnings + $totalAllowanceFee + $craft_incentives_payroll - $total_deductions - $potongan_telat_absen;
 
             // Simpan ke tabel Monthly
             DB::table('monthlies')->insert([
@@ -339,7 +355,7 @@ if ($employee->payroll_type == 'daily' || $employee->payroll_type == 'monthly_an
                 'jumlah_hari_kerja' => $workingDaysInMonth,
                 'jumlah_masuk' => $daysPresent,
                 'telat_absen' => $lateAbsencesCount,
-                'total_earnings' => $total_earnings,
+                'total_earnings' => $total_earnings + $jatEarnings,
                 'salary_daily' => $salary_daily,
                 'craft_incentives_payroll' => $craft_incentives_payroll,
                 'meal_allowance_payroll' => $totalAllowanceFee,
