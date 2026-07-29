@@ -176,7 +176,18 @@ class MonthlyController extends Controller
             ->where('period', $monthlies->period)
             ->where('employee_id', $employeeId)
             ->where('status', 'earning')
-            ->get();
+            ->get()
+            ->toArray();
+
+        $total_jat_earnings = DB::connection('jat_mysql')->table('ALL_SPK_VIEW')
+            ->selectRaw("'' as id, CONCAT(LOC, ' Earnings') as name, (CSPK_UANG_JALAN + CSPK_UANG_MAKAN + CSPK_UANG_SOLAR + CSPK_UANG_MANDAH + CSPK_UANG_PENGINAPAN + CSPK_UANG_PENGAWALAN + CSPK_UANG_LAIN2) as amount")
+            ->where('CSPK_PIC_NAME', $employeeId)
+            ->whereRaw("DATE_FORMAT(CSPK_SUBMIT_DT, '%Y-%m') = ?", [$monthlies->period])
+            ->whereNotNull('CSPK_SUBMIT_DT')
+            ->get()
+            ->toArray();
+
+        // logger('Total JAT Earnings: ', ['total_jat_earnings' => $total_jat_earnings, 'employee_id' => $employeeId, 'period' => $monthlies->period]);
 
         // Fetch deductions from monthly_has_earning_and_deductions where period and status = 'deduction'
         $deductions = DB::table('monthly_has_earning_and_deductions')
@@ -184,9 +195,10 @@ class MonthlyController extends Controller
             ->where('employee_id', $employeeId)
             ->where('status', 'deduction')
             ->get();
+
         return view('monthlies.show', [
             'monthlies' => $monthlies,
-            'earnings' => $earnings,
+            'earnings' => array_merge($earnings, $total_jat_earnings),
             'deductions' => $deductions
         ]);
     }
@@ -239,7 +251,7 @@ class MonthlyController extends Controller
         $total_jat_earnings = DB::connection('jat_mysql')->table('ALL_SPK_VIEW')
             ->selectRaw('CSPK_PIC_NAME, (CSPK_UANG_JALAN + CSPK_UANG_MAKAN + CSPK_UANG_SOLAR + CSPK_UANG_MANDAH + CSPK_UANG_PENGINAPAN + CSPK_UANG_PENGAWALAN + CSPK_UANG_LAIN2) as total_earning')
             ->whereIn('CSPK_PIC_NAME', $employees->pluck('id'))
-            ->whereBetween(DB::raw("DATE_FORMAT(CSPK_SUBMIT_DT, '%Y-%m')"), [$request->month_generate])
+            ->whereRaw("DATE_FORMAT(CSPK_SUBMIT_DT, '%Y-%m') = ?", [$request->month_generate])
             ->whereNotNull('CSPK_SUBMIT_DT')
             ->get()
             ->toArray();

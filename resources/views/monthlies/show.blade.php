@@ -4,6 +4,10 @@
 
 @section('content')
 
+    @php
+        $hasEmployeeId = !empty($monthlies->karyawan_id);
+    @endphp
+
     @push('css')
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     @endpush
@@ -41,7 +45,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="submit" class="btn btn-primary" {{ $hasEmployeeId ? '' : 'disabled' }}>Save changes</button>
                     </div>
                 </form>
             </div>
@@ -128,7 +132,8 @@
                                             {{ currency($monthlies->total_earnings + $monthlies->craft_incentives_payroll + $monthlies->meal_allowance_payroll) }}
                                             <!-- Button to trigger modal for adding earnings data -->
                                             <button class="btn btn-sm btn-light" data-bs-toggle="modal"
-                                                data-bs-target="#addDataModal" onclick="setModalType('earning')">
+                                                data-bs-target="#addDataModal" onclick="setModalType('earning')"
+                                                {{ $hasEmployeeId ? '' : 'disabled' }}>
                                                 <i class="fa fa-plus"></i> Add Earning
                                             </button>
                                         </td>
@@ -161,7 +166,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button class="btn btn-outline-danger btn-sm" type="submit"
-                                                        style="margin-left: 10px;">
+                                                        style="margin-left: 10px;" >
                                                         <i class="fa fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -176,7 +181,8 @@
                                             {{ currency($monthlies->total_deductions + $monthlies->potongan_telat_absen) }}
                                             <!-- Button to trigger modal for adding deduction data -->
                                             <button class="btn btn-sm btn-light" data-bs-toggle="modal"
-                                                data-bs-target="#addDataModal" onclick="setModalType('deduction')">
+                                                data-bs-target="#addDataModal" onclick="setModalType('deduction')"
+                                                {{ $hasEmployeeId ? '' : 'disabled' }}>
                                                 <i class="fa fa-plus"></i> Add Deduction
                                             </button>
                                         </td>
