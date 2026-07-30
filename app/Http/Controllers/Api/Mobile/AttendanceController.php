@@ -266,39 +266,39 @@ class AttendanceController extends Controller
         //     ], 422);
         // }
 
-        // if (strtotime(date('H:i:s')) < strtotime($company->start_clock_in)) {
-        //     return response()->json([
-        //         'code'  => 422,
-        //         'msg'   => "Validasi Gagal",
-        //         'error' => 'Anda hanya dapat clock-in mulai ' . $company->start_clock_in,
-        //     ], 422);
-        // }
+        if (strtotime(date('H:i:s')) < strtotime($company->start_clock_in)) {
+            return response()->json([
+                'code'  => 422,
+                'msg'   => "Validasi Gagal",
+                'error' => 'Anda hanya dapat clock-in mulai ' . $company->start_clock_in,
+            ], 422);
+        }
 
-        // if ($employee->use_gps_location == 'Yes') {
-        //     $locations = DB::table('location_attendance_employee')
-        //         ->join('gpslocations', 'location_attendance_employee.location_id', '=', 'gpslocations.id')
-        //         ->where('location_attendance_employee.employee_id', $employee->id)
-        //         ->get();
+        if ($employee->use_gps_location == 'Yes') {
+            $locations = DB::table('location_attendance_employee')
+                ->join('gpslocations', 'location_attendance_employee.location_id', '=', 'gpslocations.id')
+                ->where('location_attendance_employee.employee_id', $employee->id)
+                ->get();
 
-        //     $can = false;
+            $can = false;
 
-        //     foreach ($locations as $location) {
-        //         $distanceLatLng = GeolocationHelper::haversineGreatCircleDistance($request->latitude, $request->longitude, $location->latitude, $location->longitude);
-        //         logger('Distance to location ', ['distance_in_meters' => $distanceLatLng, 'allowed_radius' => $location->radius]);
-        //         if ($distanceLatLng <= $location->radius) {
-        //             $can = true;
-        //             break;
-        //         }
-        //     }
+            foreach ($locations as $location) {
+                $distanceLatLng = GeolocationHelper::haversineGreatCircleDistance($request->latitude, $request->longitude, $location->latitude, $location->longitude);
+                logger('Distance to location ', ['distance_in_meters' => $distanceLatLng, 'allowed_radius' => $location->radius]);
+                if ($distanceLatLng <= $location->radius) {
+                    $can = true;
+                    break;
+                }
+            }
 
-        //     if ($can == false) {
-        //         return response()->json([
-        //             'code'  => 422,
-        //             'msg'   => 'Validasi Gagal',
-        //             'error' => 'Anda harus clock-in di area yang ditentukan',
-        //         ], 422);
-        //     }
-        // }
+            // if ($can == false) {
+            //     return response()->json([
+            //         'code'  => 422,
+            //         'msg'   => 'Validasi Gagal',
+            //         'error' => 'Anda harus clock-in di area yang ditentukan',
+            //     ], 422);
+            // }
+        }
 
         if (Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first()) {
             return response()->json([
