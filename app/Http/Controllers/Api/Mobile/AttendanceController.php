@@ -434,13 +434,13 @@ class AttendanceController extends Controller
         $company = Company::first();
 
         // Validasi kecuali hari Minggu
-        if (date('N') == 7) {
-            return response()->json([
-                'code'  => 422,
-                'msg'   => "Validasi Gagal",
-                'error' => "Anda tidak dapat clock-out pada hari Minggu",
-            ], 422);
-        }
+        // if (date('N') == 7) {
+        //     return response()->json([
+        //         'code'  => 422,
+        //         'msg'   => "Validasi Gagal",
+        //         'error' => "Anda tidak dapat clock-out pada hari Minggu",
+        //     ], 422);
+        // }
 
         // Cek hari libur
         $today = now()->toDateString();
