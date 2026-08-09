@@ -291,13 +291,13 @@ class AttendanceController extends Controller
                 }
             }
 
-            // if ($can == false) {
-            //     return response()->json([
-            //         'code'  => 422,
-            //         'msg'   => 'Validasi Gagal',
-            //         'error' => 'Anda harus clock-in di area yang ditentukan',
-            //     ], 422);
-            // }
+            if ($can == false) {
+                return response()->json([
+                    'code'  => 422,
+                    'msg'   => 'Validasi Gagal',
+                    'error' => 'Anda harus clock-in di area yang ditentukan',
+                ], 422);
+            }
         }
 
         if (Attendance::where('date', date('Y-m-d'))->where('employee_id', $employeeTokenObj->id)->first()) {
@@ -328,6 +328,31 @@ class AttendanceController extends Controller
             'data' => $data,
             'msg' => 'Berhasil, Clock-In Berhasil'
         ], 200);
+    }
+
+    private function validateInAttendanceArea(Request $request, Employee $employee)
+    {
+        if ($employee->use_gps_location == 'No') {
+            return;
+        }
+
+        $locations = DB::table('location_attendance_employee')
+            ->join('gpslocations', 'location_attendance_employee.location_id', '=', 'gpslocations.id')
+            ->where('location_attendance_employee.employee_id', $employee->id)
+            ->get();
+
+        foreach ($locations as $location) {
+            $distanceLatLng = GeolocationHelper::haversineGreatCircleDistance($request->latitude, $request->longitude, $location->latitude, $location->longitude);
+            if ($distanceLatLng <= $location->radius) {
+                return;
+            }
+        }
+
+        abort(response()->json([
+            'code'  => 422,
+            'msg'   => 'Validasi Gagal',
+            'error' => 'Anda harus berada di area yang ditentukan untuk melakukan absensi',
+        ], 422));
     }
 
     public function clockIstirahat(ApiMobileAttendanceClockIstirahatRequest $request)
@@ -488,6 +513,9 @@ class AttendanceController extends Controller
                 'error' => 'Anda belum melakukan clock-in',
             ], 422);
         }
+
+        // Validasi lokasi GPS (harus dalam area)
+        $this->validateInAttendanceArea($request, $employee);
 
         // Validasi jika sudah melakukan clock-out
         if ($attendance->clock_out) {
