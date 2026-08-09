@@ -81,7 +81,7 @@
                                             @if ($attendance->image_istirahat == null)
                                                 -
                                             @else
-                                                <img src="{{ asset('storage/file-attachment/file-attachment/' . $attendance->image_istirahat) }}"
+                                                <img src="{{ asset('storage/image-istirahat/image-istirahat/' . $attendance->image_istirahat) }}"
                                                     alt="File Attachment" class="rounded" width="200" height="150"
                                                     style="object-fit: cover">
                                             @endif
@@ -93,7 +93,7 @@
                                             @if ($attendance->image_clock_out == null)
                                                 -
                                             @else
-                                                <img src="{{ asset('storage/file-attachment/file-attachment/' . $attendance->image_clock_out) }}"
+                                                <img src="{{ asset('storage/image-clock-out/image-clock-out/' . $attendance->image_clock_out) }}"
                                                     alt="File Attachment" class="rounded" width="200" height="150"
                                                     style="object-fit: cover">
                                             @endif
