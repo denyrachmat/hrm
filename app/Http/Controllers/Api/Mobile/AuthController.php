@@ -40,7 +40,7 @@ class AuthController extends Controller
         //     'token_fcm' => $request->token_fcm
         // ]);
 
-        if ($employee->device_id !== $request->device_id) {
+        if (!empty($employee->device_id) && $employee->device_id !== $request->device_id) {
             logger('Login failed for employee_id: ' . $request->employee_id . ' - Device ID mismatch');
             return $this->validationError("You can't login, your account is logged in on another device");
         }
