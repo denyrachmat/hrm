@@ -104,7 +104,8 @@
                                             <th>{{ __('Departement') }}</th>
                                             <th>{{ __('Date') }}</th>
                                             <th>{{ __('Clock In') }}</th>
-                                            <th>{{ __('Istirahat') }}</th>
+                                            <th>{{ __('Istirahat In') }}</th>
+                                            <th>{{ __('Istirahat Out') }}</th>
                                             <th>{{ __('Clock Out') }}</th>
                                             <th>{{ __('Is Present') }}</th>
                                             <th>{{ __('Description') }}</th>
@@ -158,6 +159,10 @@
             {
                 data: 'clock_istirahat',
                 name: 'clock_istirahat',
+            },
+            {
+                data: 'clock_istirahat_out',
+                name: 'clock_istirahat_out',
             },
             {
                 data: 'clock_out',

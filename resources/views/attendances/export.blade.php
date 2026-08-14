@@ -5,6 +5,8 @@
             <th style="background-color:#D3D3D3 ">{{ __('Departement') }}</th>
             <th style="background-color:#D3D3D3 ">{{ __('Date') }}</th>
             <th style="background-color:#D3D3D3 ">{{ __('Clock In') }}</th>
+            <th style="background-color:#D3D3D3 ">{{ __('Istirahat In') }}</th>
+            <th style="background-color:#D3D3D3 ">{{ __('Istirahat Out') }}</th>
             <th style="background-color:#D3D3D3 ">{{ __('Clock Out') }}</th>
             <th style="background-color:#D3D3D3 ">{{ __('Is Present') }}</th>
             <th style="background-color:#D3D3D3 ">{{ __('Description') }}</th>
@@ -19,6 +21,8 @@
                 <td>{{ $dt->department_name }}</td>
                 <td>{{ $dt->date }}</td>
                 <td>{{ $dt->clock_in }}</td>
+                <td>{{ $dt->clock_istirahat }}</td>
+                <td>{{ $dt->clock_istirahat_out }}</td>
                 <td>{{ $dt->clock_out }}</td>
                 <td>{{ $dt->is_present }}</td>
                 <td>{{ $dt->description }}</td>
